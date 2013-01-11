@@ -8,6 +8,6 @@ public class Link extends Cell {
     /** Create a new Link at the provided coordinates. */
     public Link(Point coordinates) {
         super(coordinates);
-        setIsOccupied(true);
+        setOccupied("Link");
     }
 }

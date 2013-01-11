@@ -2,6 +2,7 @@ package com.snake;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Random;
 import java.util.Vector;
 
 import javax.swing.*;
@@ -18,11 +19,17 @@ public class GUI extends JFrame {
     /** The Snake the player controls to play the game. */
     private Snake snake;
 
+    /** Timer used to control how often to have actions take place in the game. */
+    private Timer timer;
+
+    /** A counter used to determine how often to dispense food. */
+    private int foodCounter = 1;
+
     public static void main(String[] args) {
 		new GUI();
 	}
 	
-	public GUI() {
+	private GUI() {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		panel.setLayout(new GridLayout(10, 10));
 		add(panel);
@@ -41,12 +48,17 @@ public class GUI extends JFrame {
 		setVisible(true);
 
         addSnake();
-        Timer timer = new Timer(1000, new ActionListener() {
+        timer = new Timer(500, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 System.out.println("Tick!");
-                snake.move(snake.getDirection(), boardCells);
-                updateDisplay();
+                snake.move(snake.getDirection(), boardCells, GUI.this);
+                if (foodCounter == 3) {
+                    dispenseFood();
+                    foodCounter = 1;
+                }
+                else foodCounter++;
+
             }
         });
         timer.start();
@@ -64,24 +76,31 @@ public class GUI extends JFrame {
         });
 	}
 
+    /** Get the Timer used for timing steps in the game. */
+    public Timer getTimer() {
+        return timer;
+    }
+
     /** Create a new Snake and display it in the GUI. */
     private void addSnake() {
         snake = new Snake();
         for (Link link : snake.getBody())
-            boardCells.get(link.getCoordinates().y).get(link.getCoordinates().x).setIsOccupied(true);
+            boardCells.get(link.getCoordinates().y).get(link.getCoordinates().x).setOccupied("Link");
     }
 
-    /** Re-draw all UI components to display any updated game state. */
-    private void updateDisplay() {
-        // TODO This should just happen whenever the Snake moves.
-        for (Link link : snake.getBody())
-            boardCells.get(link.getCoordinates().y).get(link.getCoordinates().x).setIsOccupied(true);
+    /** Add a new piece of food to the board. */
+    private void dispenseFood() {
+        Boolean dispensed = false;
 
-        for (Vector<Cell> cellVector : boardCells) {
-            for (Cell cell : cellVector) {
-                ((JLabel) panel.getComponentAt(cell.getCoordinates())).setIcon(cell.getIcon());
+        while (!dispensed) {
+            Random randGenerator = new Random();
+            int randX = randGenerator.nextInt(10);
+            int randY = randGenerator.nextInt(10);
+
+            if (!boardCells.get(randY).get(randX).isOccupied()) {
+                boardCells.get(randY).get(randX).setOccupied("Food");
+                dispensed = true;
             }
         }
-        System.out.println(panel.getComponentAt(0, 0));
     }
 }
